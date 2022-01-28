@@ -1,0 +1,173 @@
+# This example program serves to demonstrate the potential
+# to Automate data management and initial test of variable
+# relationship.
+# Jan 2022 By Alex Bevilacqua.
+
+import os
+import plotly.express as px
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plot
+from scipy.stats import skew
+
+# Set Working Directory
+wd = str(input("Enter Working Directory Path: "))
+os.chdir(wd)
+
+# Import Data
+fileType = input("Enter Input Data Type ex. .xlsx: ")
+fileName = str(input("Enter File Name"))
+fileIn = fileName + fileType
+
+if fileType == '.xlsx':
+    data = pd.read_excel(wd + fileIn)
+
+elif fileType == '.csv':
+    data = pd.read_csv(wd + fileIn)
+
+else:
+    print("Error: Invalid file type")
+
+# Check Data
+print()
+print("DATA CHECK: ")
+print(data.head(10))
+
+xIn = str(input("Input Desired x Variable:"))
+yIn = str(input("Input Desired y Variable:"))
+
+x = data[xIn]
+y = data[yIn]
+
+# Calculate some statistic for variables
+meanX = np.mean(x)
+meanY = np.mean(y)
+
+print()
+print("X var mean =")
+print(meanX)
+print()
+print("Y var mean =")
+print(meanY)
+print()
+
+# Formatting
+plot.xlabel = x
+plot.ylabel = y
+xlabel = xIn
+ylabel = yIn
+
+# Check if Distributions Approx. Normal Transformations
+normCheck = input("Would you like to check distribution skewness?")
+
+if normCheck == 'Yes':
+    # Calculate Skews and Plot
+    skewX = skew(x.dropna())
+    skewY = skew(y.dropna())
+
+    plot.hist(x, label="skewX " + xlabel + " " + str(skewX))
+    plot.xlabel = x
+    plot.legend()
+    plot.show()
+
+    plot.hist(y, label="skewY " + ylabel + " " + str(skewY))
+    plot.ylabel = y
+    plot.legend()
+    plot.show()
+
+    # Choose to Apply Transformations
+    transform = input("Apply transformations? 1 = Yes, 2 = No.")
+
+    if transform == "1":
+
+        if 0.5 < skewX <= 1:
+
+            x = data[xIn].transform(np.sqrt)
+            skewX = skew(x.dropna())
+
+            plot.hist(x, label="skewX " + xlabel + " " + str(skewX))
+            plot.legend()
+            plot.show()
+
+        elif -1 <= skewX < -0.5:
+
+            x = data[xIn].transform(np.log10)
+            skewX = skew(x.dropna())
+
+            plot.hist(x, label="skewX " + xlabel + " " + str(skewX))
+            plot.legend()
+            plot.show()
+
+        elif skewX > 1:
+            x = data[xIn].transform(np.cbrt)
+            skewY = skew(y.dropna())
+
+            plot.hist(y, label="skewY " + ylabel + " " + str(skewY))
+            plot.legend()
+            plot.show()
+
+        else:
+            plot.hist(x, label="skewX" + xlabel + str(skewX))
+            plot.legend()
+            plot.show()
+
+        if 0.5 < skewY <= 1:
+
+            y = data[yIn].transform(np.sqrt)
+            skewY = skew(y.dropna())
+
+            plot.hist(y, label="skewY " + ylabel + " " + str(skewY))
+            plot.legend()
+            plot.show()
+
+        elif -1 <= skewY < -0.5:
+
+            y = data[yIn].transform(np.log)
+            skewY = skew(y.dropna())
+
+            plot.hist(y, label="skewY " + ylabel + " " + str(skewY))
+            plot.legend()
+            plot.show()
+
+        elif skewY > 1:
+
+            y = data[yIn].transform()
+            skewY = skew(y.dropna())
+
+            plot.hist(y, label="skewY " + ylabel + " " + str(skewY))
+            plot.legend()
+            plot.show()
+
+    else:
+        skewX = skew(x.dropna())
+        skewY = skew(y.dropna())
+
+        plot.hist(x, label="skewX " + xlabel + " " + str(skewX))
+        plot.legend()
+        plot.show()
+
+        plot.hist(y, label="skewY " + ylabel + " " + str(skewY))
+        plot.legend()
+        plot.show()
+
+else:
+    x = x
+    y = y
+
+    skewX = skew(x.dropna())
+    skewY = skew(y.dropna())
+
+    plot.hist(x, label="skewX " + xlabel + " " + str(skewX))
+    plot.legend()
+    plot.show()
+
+    plot.hist(y, label="skewY " + ylabel + " " + str(skewY))
+    plot.legend()
+    plot.show()
+
+# Interactive plot with coefficient of correlation R^2.
+fig = px.scatter(data, x=xlabel, y=ylabel, trendline="ols")
+
+fig.show()
+results = px.get_trendline_results(fig)
+print(results)
